@@ -1,0 +1,241 @@
+/*Tons of redundancy and crap.
+  -List items are put in a CSS grid
+  -Input form transitions to expand with inputs fading in
+  	-fade-in is rough with CSS and inputs/forms, using a
+  	 disappearing cover div kind of works
+  -All transitions and expanding start with #formWrapper:hover
+ */
+
+body {
+	background-color: #515151;
+}
+
+input, select {
+	background: transparent;
+	border: none;
+}
+
+#taskDiv {
+	position: relative;
+	width: 50%;
+	height: 100%;
+	overflow-wrap: break-word;
+	border-top-left-radius: 2em 5em;
+	border-bottom-left-radius: 2em 5em;
+	padding-left: 2%;
+	float: left;
+	border-right: 3px solid #bebebe;
+	opacity: 0;
+}
+
+#dateDiv {
+	position: absolute;
+	left: 52%;
+	width: 35%;
+	height: 50%;
+	text-align: center;
+	vertical-align: middle;
+	opacity: 0;
+}
+
+#priorityDiv {
+	position: absolute;
+	left: 52%;
+	bottom: 0;
+	width: 35%;
+	height: 49%;
+	text-align: center;
+	border-top: 3px solid #bebebe;
+	opacity: 0;
+}
+
+#categoryDiv {
+	position: absolute;
+	left: 87%;
+	width: 13%;
+	height: 100%;
+	border-top-right-radius: 2em 5em;
+	border-bottom-right-radius: 2em 5em;
+	text-align: center;
+	border-left: 3px solid #bebebe;
+	opacity: 0;
+}
+
+#gridContainer {
+	display: grid;
+	grid-template-columns: auto auto auto auto auto;
+	grid-gap: 3px;
+	background-color: #bebebe;
+	border-radius: 5px;
+	font: 18px arial, sans-serif;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+#formWrapper {
+	position: fixed;
+	bottom: 4vw;
+	left: 4vw;
+	border-radius: 50%;
+	width: 8vw;
+	height: 8vw;
+	background: #41aeff;
+	-webkit-transition: opacity 1s ease-in-out;
+    -moz-transition: opacity 1s ease-in-out;
+    -ms-transition: opacity 1s ease-in-out;
+    -o-transition: opacity 1s ease-in-out;
+     opacity: 1;
+}
+
+#removeSelected {
+	position: fixed;
+	bottom: 4vw;
+	right: 4vw;
+	border-radius: 50%;
+	width: 8vw;
+	height: 8vw;
+	background: #ff1e42;
+	-webkit-transition: opacity 1s ease-in-out;
+    -moz-transition: opacity 1s ease-in-out;
+    -ms-transition: opacity 1s ease-in-out;
+    -o-transition: opacity 1s ease-in-out;
+     opacity: 1;
+}
+
+#writeToFile {
+	position: fixed;
+	bottom: 4vw;
+	left: 33%;
+	border-radius: 50%;
+	width: 10vw;
+	height: 8vw;
+	border-radius: 2em / 5em;
+	background: #6ad219;
+	-webkit-transition: opacity 1s ease-in-out;
+    -moz-transition: opacity 1s ease-in-out;
+    -ms-transition: opacity 1s ease-in-out;
+    -o-transition: opacity 1s ease-in-out;
+     opacity: 1;
+}
+
+#readFromFile {
+	position: fixed;
+	bottom: 4vw;
+	left: 58%;
+	border-radius: 50%;
+	width: 10vw;
+	height: 8vw;
+	border-radius: 2em / 5em;
+	background: #f8cb1f;
+	-webkit-transition: opacity 1s ease-in-out;
+    -moz-transition: opacity 1s ease-in-out;
+    -ms-transition: opacity 1s ease-in-out;
+    -o-transition: opacity 1s ease-in-out;
+     opacity: 1;
+}
+
+#removeSelected:hover {
+	background: #d21937;
+	-webkit-transition: background .3s ease-in-out;
+    -moz-transition: background .3s ease-in-out;
+    -ms-transition: background .3s ease-in-out;
+    -o-transition: background .3s ease-in-out;
+}
+
+#formWrapper:hover {
+	background: #3b9de6;
+	-webkit-transition: background .3s ease-in-out;
+    -moz-transition: background .3s ease-in-out;
+    -ms-transition: background .3s ease-in-out;
+    -o-transition: background .3s ease-in-out;
+}
+
+.userRow {
+	font: 15px arial, sans-serif;
+	border: 1px solid black;
+	border-radius: 5px;
+}
+
+.userPriorityHigh {
+	background: rgb(255,65,65);
+	background: linear-gradient(0deg, rgba(255,65,65,1) 0%, rgba(190,190,190,1) 50%, rgba(255,65,65,1) 100%);
+}
+
+.userPriorityMed {
+	background: rgb(236,255,65);
+	background: linear-gradient(0deg, rgba(236,255,65,1) 0%, rgba(190,190,190,1) 50%, rgba(236,255,65,1) 100%);
+}
+
+.userPriorityLow {
+	background: rgb(65,174,255);
+	background: linear-gradient(0deg, rgba(65,174,255,1) 0%, rgba(190,190,190,1) 50%, rgba(65,174,255,1) 100%);
+}
+
+.todayDue {
+	font-weight: bold;
+}
+
+.overdue {
+	font-weight: bold;
+	color: red;
+}
+
+.taskFinished {
+	text-decoration: line-through;
+}
+
+#formWrapper.formWrapperDisappear {
+	-webkit-transition: opacity 1s ease-in-out;
+    -moz-transition: opacity 1s ease-in-out;
+    -ms-transition: opacity 1s ease-in-out;
+    -o-transition: opacity 1s ease-in-out;
+	opacity: 0;
+}
+
+#formWrapper.newFormWrapperAppear {
+	width: 80vw;
+	height: 10vw;
+	border-radius: 2em / 5em;
+	-webkit-transition: opacity 1s ease-in-out;
+    -moz-transition: opacity 1s ease-in-out;
+    -ms-transition: opacity 1s ease-in-out;
+    -o-transition: opacity 1s ease-in-out;
+	opacity: 1;
+}
+
+.newDivWrapperAppear {
+	opacity: 1;
+}
+
+#submitDiv {
+	position: fixed;
+	bottom: 4vw;
+	right: .5vw;
+	border-radius: 2em / 5em;
+	width: 14vw;
+	height: 10vw;
+	background: #41aeff;
+	opacity: 0;
+}
+
+.topRow {
+	text-align: center;
+}
+
+#popUp {
+	position: fixed;
+	display: inline-block;
+	width:  80vw;
+	height: 80vw;
+	background-color: #FFFFFF;
+	left: 10vw;
+	top: 5vw;
+	border-radius: 2em;
+	opacity: .85;
+	z-index: 1;
+	text-align: center;
+	font-family: Lucida, sans-serif;
+}

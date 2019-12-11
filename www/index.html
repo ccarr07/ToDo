@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<title>Planner</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body, html {
+  height: 100%;
+  margin: 0;
+}
+
+.bgimg {
+  background-image: url(img/123.png);
+  height: 100%;
+  background-position: center;
+  background-size: cover;
+  position: relative;
+  color: white;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 20px;
+}
+
+.topleft {
+  position: absolute;
+  top: 0;
+  left: 16px;
+}
+
+.bottomleft {
+  position: absolute;
+  bottom: 0;
+  left: 16px;
+}
+
+.header {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+#textDiv {
+  position: absolute;
+  top: 64%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+#submit {
+  position: absolute;
+  width: 12%;
+  height: 10%;
+  top: 74%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+
+</style>
+<body>
+
+<div class="bgimg">
+  <div class="topleft">
+  </div>
+  <div class="header">
+    <h1 style="color: black" >PLANNER</h1>
+  </div>
+  <div id="textDiv">
+    <p style="color: black; font-weight: 900">Final Project</p>
+  </div>
+  <div id="submitDiv">
+      <!--Add Link to Project-->
+    <input id="submit" type="image" onclick="window.location.href='proj.html';" src="img/Forward.png">
+  </div>
+  <div class="bottomleft">
+      <p style="color: ">CHARLIE BLACK, NICK HAWLEY, CHRISTIAN CARR, RAE ITALIA, TYLER CUBARNEY</p>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+	<script src="js/jquery-3.4.1.min.js"></script>
+	<script>
+		//FILE WRITER+READER
+		/* Button to readIT() appends to gridcontainer with innerHTML if file not empty
+			-empties file with truncate() after writing to html
+		   Button to writeIT() gathers everything in gridcontainer and saves to txt file
+		   Both functions can create a file if it is missing
+		/*BUGS: 
+			Does not apply correct priority value on innerHTML
+			Cannot get to fire onload or onunload, forced to use buttons
+				for manual saving.
+			More HTML5 date format issues (whoever made the html5 date picker needs a stern talking to)
+		*/
+		
+  
+	document.addEventListener('deviceready', onDeviceReady, false);
+	function onDeviceReady(){
+	  var size =0;
+	  window.requestFileSystem(LocalFileSystem.PERSISTENT, size, onFSsuccess, onFSerror);
+	}
+
+
+	function onFSsuccess(FS){
+	   myRoot=FS.root;
+	   myRoot.getFile('taskplanner.txt', {create: true, exclusive:false}, function(fileEntry) {setUP(fileEntry, null, true);}, onCreateErr);
+	}
+
+	function getItReady(file)
+	{
+	   writeFile(file, null);
+	}
+
+	function readIT() {
+		myFile.file(function (file) {
+        	var reader = new FileReader();
+        reader.onloadend = function() {
+        	if (this.result !== ""){
+        		document.getElementById("gridContainer").innerHTML = this.result;
+            	truncateFile();
+        	}
+        };
+        reader.readAsText(file);
+        
+    }, onReadErr);
+	}
+
+	function setUP(fileEntry, x, isAppend){
+	//setUP the file pointer for later use
+	  myFile=fileEntry;
+	  
+	}
+
+	function onFSerror(err){
+		alert ("FS Error " + err);
+	}
+
+	function onReadErr (err){
+	   alert ("Read Error " + err);
+	}
+
+	function onWriteErr (err){
+	   alert ("Write Error " + err);
+	}
+
+	function onCreateErr (err){
+	   alert ("Create Error " + err);
+	}
+
+	function writeIT() {
+	  onDeviceReady();
+	  myFile.createWriter(onGetWriter, onWriteErr);
+
+	}
+
+	function onGetWriter(myWriter) {
+		truncateFile();
+	    str = document.getElementById("gridContainer").innerHTML;
+	    myWriter.seek(myWriter.length);
+	    myWriter.write(str);
+
+	}
+
+	function truncateFile() {
+		myFile.createWriter(onGetWriterTruncate, onWriteErr);
+	}
+
+	function onGetWriterTruncate(myWriter) {
+	    myWriter.seek(myWriter.length);
+	    myWriter.truncate(0);
+
+	} 
+	</script>
+	<script>
+		//This is the main functionality. Add extras after marked comment
+		/* Onload function contains:
+		   *append 5 divs containing task information (CSS grid styling)
+		   *remove last-added line (end 5 divs)
+		   *checked checkbox find and remove line (finds checkbox index 
+		   		and cuts 5 divs backwards from the next checkbox element)
+		   *resets input values to "" on submit
+		*/
+		window.onload = function(){
+
+			$(window).click(function(){
+				$("#popUp").css("display","none");
+			})
+
+			$("#taskDiv").click(function(){
+				$("#taskDiv").empty();
+			});
+
+			$("#submitDiv").css("display","none");
+
+			/* checkOverDue function takes the date as of firing and
+			   checks it against the date in a line. If >, then the class
+			   "overdue" is added. If already applied, iteration is skipped to
+			   save operations. Very similar process to checkbox removal.
+
+			   Interval is set to 1000ms on window load so it keeps track in live
+			   time.
+			*/
+			function checkOverDue() {
+				var newDate = new Date().setHours(0,0,0,0).toLocaleString("en-US", {timeZone: "America/New_York"});
+				var correctedDate = parseInt(newDate.replace(/,/g, ''));
+				$("#gridContainer > .userRowDate").each(function() {
+
+					var dateSubmitted = new Date(this.textContent);
+					var startIndex = $(this).index() - 7;
+					var endIndex = $(this).index() - 2;
+					var indexRange = $("#gridContainer > .userRow").slice(startIndex,endIndex);
+					var correctedSubmit = dateSubmitted.setMinutes( dateSubmitted.getMinutes() + dateSubmitted.getTimezoneOffset()) /*+ 50400000*/; //timezone chaos with html5, ms added to match offset
+
+					if ($(this).hasClass("overdue")) {
+						return;
+					}
+
+					if (correctedDate == correctedSubmit){
+						indexRange.addClass("todayDue");
+					}
+
+					if (correctedDate > correctedSubmit){
+						indexRange.addClass("overdue");
+							
+					}
+				});
+			};
+
+			$(function(){
+				setInterval(checkOverDue, 1000);
+			});
+
+			$("#dateInput").fadeOut(1);
+			$("#priority").fadeOut(1);
+			$("#category").fadeOut(1);
+
+			$("#formWrapper").hover(function(){
+				$("#dateInput").delay(1000).fadeIn(700);
+				$("#priority").delay(1000).fadeIn(700);
+				$("#category").delay(1000).fadeIn(700);		
+			});
+
+			$("#submitDiv").click(function(){
+
+				var newdiv1 = "<div class='userRow userCheckBox' onchange='taskChange()'><input type='checkbox'></div>";
+				var newdiv2 = "<div class='userRow'>" + $("#taskDiv").text() + "</div>";
+				var newdiv3 = "<div class='userRow userRowDate'>" + $("#dateInput").val() + "</div>";
+				var newdiv4 = "<div class='userRow userPriority'  onchange='priorityCheck()'><select id='listPriority'><option value='high'>High</option><option value='medium'>Medium</option><option value='low'>Low</option></select></div>";
+				var newdiv5 = "<div class='userRow userCategory'><select id='listCategory'><option value='personal'>Personal</option><option value='work'>Work</option></select></div>";
+
+				$("#gridContainer").append(newdiv1, newdiv2, newdiv3, newdiv4, newdiv5);
+					
+				$("#listPriority").val($("#priority option:selected").val());
+				$("#listPriority").removeAttr("id");
+				$("#listCategory").val($("#category option:selected").val());
+				$("#listCategory").removeAttr("id");
+				$("#taskDiv").empty();
+				$("#dateInput").val("");
+				$("#priority").val("low"); //default low as selection
+				$("#category").val("personal"); //default personal as selection
+
+				$("#formWrapper, #submitDiv, #taskDiv, #dateDiv, #categoryDiv, #priorityDiv").css("opacity","0").delay(800).queue(function(){
+					$("#formWrapper").removeClass("newFormWrapperAppear").dequeue();
+					$("#writeToFile, #readFromFile, #removeSelected, #formWrapper").css("opacity","1").dequeue();
+					$("#submitDiv, #taskDiv, #dateDiv, #categoryDiv, #priorityDiv").css("opacity","0").dequeue();
+					$("#removeSelected , #readFromFile, #writeToFile").css("visibility","visible").dequeue();
+					$("#submitDiv, #taskDiv, #dateDiv, #categoryDiv, #priorityDiv").css("display", "none").dequeue();
+				});
+				
+
+				priorityCheck();
+			});
+
+			$("#removeSelected").click(function(){
+				var checked = $("input[type=checkbox]:checked");
+				checked.each(function() {
+					var endIndex = $(this).parent().index();
+					var startIndex = endIndex - 5;
+					$("#gridContainer > .userRow").slice(startIndex,endIndex).remove();
+				});
+			});
+
+			$("#formWrapper").click(function() { //function applies transition delay for lower ui
+				$("#removeSelected , #readFromFile, #writeToFile").css("opacity","0").delay(800);
+				$(this).addClass("formWrapperDisappear").delay(800).queue(function(){
+					$(this).addClass("newFormWrapperAppear").dequeue();
+					$("#taskDiv, #dateDiv, #categoryDiv, #priorityDiv").css("opacity","1").dequeue();
+					$("#taskDiv, #dateDiv, #categoryDiv, #priorityDiv").css("visibility","visible").dequeue();
+					$("#removeSelected , #readFromFile, #writeToFile").css("visibility","hidden").dequeue();
+					$("#submitDiv, #taskDiv, #dateDiv, #categoryDiv, #priorityDiv").css("display", "block").dequeue();
+				})
+				
+
+				$("#formWrapper").on("input", function(){
+					if ($("#submitDiv").css("opacity") == "1"){
+						return
+					}
+
+					if ($("#taskDiv") && $("#dateDiv") && $("#priorityDiv") && $("#categoryDiv") !== null ){
+						$("#submitDiv").css("display", "block");
+						$("#submitDiv").css("opacity","1");
+					}
+				})
+			});
+			//END OF MAIN FUNCTIONALITY. ***ADD HERE***
+		};
+		//END OF ONLOAD FUNCTION
+
+	function priorityCheck(){  //function checks all priority values and applies class
+		$("#gridContainer > .userPriority").each(function(){
+			var startIndex = $(this).index() - 8;
+			var endIndex = $(this).index() - 3;
+			var indexRange = $("#gridContainer > .userRow").slice(startIndex,endIndex);
+			var value = $(this).children().val();
+
+			if (value == "high"){
+				indexRange.removeClass("userPriorityMed userPriorityLow");
+				indexRange.addClass("userPriorityHigh");
+			}
+
+			if (value == "medium"){
+				indexRange.removeClass("userPriorityHigh userPriorityLow");
+				indexRange.addClass("userPriorityMed");
+			}
+
+			if (value == "low"){
+				indexRange.removeClass("userPriorityHigh userPriorityMed");
+				indexRange.addClass("userPriorityLow");
+			}
+		});
+
+	}
+
+	function taskChange() {  //function checks all checkboxes, sets strikethrough class if checked
+		var checked = $("input:checkbox:checked");
+		var unchecked = $("input:checkbox:not(:checked)");
+		checked.each(function() {
+			var endIndex = $(this).parent().index();
+			var startIndex = endIndex - 5;
+			$("#gridContainer > .userRow").slice(startIndex,endIndex).addClass("taskFinished");
+		})
+
+		unchecked.each(function(){
+			var endIndex = $(this).parent().index();
+			var startIndex = endIndex - 5;
+			$("#gridContainer > .userRow").slice(startIndex,endIndex).removeClass("taskFinished");
+		})
+	}
+
+	function dateSort(){ 
+		var dateArray = [];
+
+		$("#gridContainer > .userRowDate").each(function() {
+
+			var startIndex = $(this).index() - 7;
+			var endIndex = $(this).index() - 2;
+			var dateSubmitted = new Date(this.textContent);
+			var checkboxValue = $("#gridContainer > .userRow").slice(startIndex,startIndex + 1).children().prop('checked');
+			var taskValue = $("#gridContainer > .userRow").slice(startIndex + 1,startIndex + 2).text();
+			var priorityValue = $("#gridContainer > .userRow").slice(startIndex + 3,startIndex + 4).children().val();
+			var categoryValue = $("#gridContainer > .userRow").slice(startIndex + 4,startIndex + 5).children().val();
+			dateArray.push({'date':dateSubmitted,'checked':checkboxValue,'task':taskValue,'priority':priorityValue,'category':categoryValue});
+		});
+
+		$("#dateSort").toggleClass("sortAscend");
+
+		if ($("#dateSort").hasClass("sortAscend")){
+
+			dateArray.sort(function(a, b) {
+				var dateA = new Date(a.date);
+				var dateB = new Date(b.date);
+				return dateB-dateA
+			})
+		}
+
+		else {
+
+			dateArray.sort(function(a, b) {
+				var dateA = new Date(a.date);
+				var dateB = new Date(b.date);
+				return dateA-dateB
+			})
+		}
+
+		$("#gridContainer > .userRow").remove();
+
+
+		dateArray.forEach(function(e){
+			var date = new Date(e.date);
+			var correctedDate = date.toLocaleDateString();
+			var newdiv1 = "<div class='userRow userCheckBox' onchange='taskChange()'><input type='checkbox' id='checkBox'></div>";
+			var newdiv2 = "<div class='userRow'>" + e.task + "</div>";
+			var newdiv3 = "<div class='userRow userRowDate'>" + correctedDate + "</div>";
+			var newdiv4 = "<div class='userRow userPriority'  onchange='priorityCheck()'><select id='listPriority'><option value='high'>High</option><option value='medium'>Medium</option><option value='low'>Low</option></select></div>";
+			var newdiv5 = "<div class='userRow userCategory'><select id='listCategory'><option value='personal'>Personal</option><option value='work'>Work</option></select></div>";
+
+			$("#gridContainer").append(newdiv1, newdiv2, newdiv3, newdiv4, newdiv5);
+			$("#checkBox").val($("#checkBox").prop('checked', e.checked));	
+			$("#checkBox").removeAttr("id");
+			$("#listPriority").val(e.priority);;
+			$("#listPriority").removeAttr("id");
+			$("#listCategory").val(e.category);
+			$("#listCategory").removeAttr("id");
+
+			taskChange();  //check and reapply styling
+			priorityCheck();
+		})
+	}	
+	</script>
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	<h1>To Do List</h1>
+</head>
+<body>
+<div id="pageMask">
+<div id="popUp"><h2>Instructions:</h2>
+	Press the <span style="color:#41aeff"><b>blue circle</b></span> to add a task<br>
+	Press the <span style="color:#ff1e42"><b>red circle</b></span> to delete checked tasks<br>
+	Press the <span style="color:#6ad219"><b>green rectangle</b></span> to save your tasks before you quit<br>
+	Press the <span style="color:#f8cb1f"><b>yellow rectangle</b></span> to load the tasks you saved last time<br>
+	Sort the dates ascending or descending by pressing the Date title
+
+</div>
+<div id="wrapper">
+	<div id="gridContainer">
+		<div class="topRow">Done?</div>
+		<div class="topRow">Task</div>
+		<div class="topRow" id="dateSort" onclick="dateSort()">Date (sort)</div>
+		<div class="topRow">Priority</div>
+		<div class="topRow">Category</div>
+	</div>
+	<div id="formWrapper">
+		<div id="taskDiv" contenteditable="true">Please input task</div>
+		<div id="cover"></div>
+		<div class="input" id="dateDiv">
+			<input id="dateInput" type="date">
+		</div>
+		<div class="input" id="priorityDiv">
+			<select id="priority">
+				<option value="high">High</option>
+				<option value="medium">Medium</option>
+				<option value="low" selected>Low</option>
+			</select>
+		</div>
+		<div class="input" id="categoryDiv">
+			<select id="category">
+				<option value="personal" selected>Personal</option>
+				<option value="work">Work</option>
+			</select>
+		</div>
+	</div>
+	<div id="writeToFile" onclick="writeIT()"></div>
+	<div id="readFromFile" onclick="readIT()"></div>
+	<div id="removeSelected"></div>
+	<div id="submitDiv"></div>
+</div>
+</div>
+</body>
+</html>
